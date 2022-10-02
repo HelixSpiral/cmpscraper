@@ -9,7 +9,7 @@ import (
 
 const URL = "https://ecmp.cmpco.com/OutageReports/CMP.html"
 
-func GetStats() (CMP, error) {
+func GetStats(httpClient *http.Client) (CMP, error) {
 	var stats CMP
 	stats.Counties = make(map[string]Outage)
 
@@ -22,7 +22,7 @@ func GetStats() (CMP, error) {
 	counties := regexp.MustCompile(`([a-zA-Z]+\.html)'>([a-zA-Z]+)</a>.+?([0-9,]+)</t.+?([0-9,]+)</t`)
 	updatedAt := regexp.MustCompile("Update: ([^<]+)")
 
-	resp, err := http.Get(URL)
+	resp, err := httpClient.Get(URL)
 	if err != nil {
 		return stats, err
 	}
