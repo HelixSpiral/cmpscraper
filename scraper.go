@@ -1,6 +1,7 @@
 package cmpscraper
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -15,7 +16,7 @@ func GetStats(httpClient *http.Client) (CMP, error) {
 
 	loc, err := time.LoadLocation("EST")
 	if err != nil {
-		return stats, err
+		return stats, fmt.Errorf("error loading time information: %w", err)
 	}
 
 	regTotals := regexp.MustCompile("Total</th><th>([0-9,]+)</th><th>([0-9,]+)</th>")
@@ -24,12 +25,12 @@ func GetStats(httpClient *http.Client) (CMP, error) {
 
 	resp, err := httpClient.Get(URL)
 	if err != nil {
-		return stats, err
+		return stats, fmt.Errorf("error in http GET: %w", err)
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return stats, err
+		return stats, fmt.Errorf("error reading http response body: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -41,7 +42,7 @@ func GetStats(httpClient *http.Client) (CMP, error) {
 
 	stats.LastUpdate, err = time.ParseInLocation("Jan 02, 2006 03:04 PM", match2[1], loc)
 	if err != nil {
-		return stats, err
+		return stats, fmt.Errorf("erorr parsing time location: %w", err)
 	}
 
 	match3 := counties.FindAllStringSubmatch(string(body), -1)
