@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -33,6 +34,10 @@ func GetStats(httpClient *http.Client) (CMP, error) {
 		return stats, fmt.Errorf("error reading http response body: %w", err)
 	}
 	defer resp.Body.Close()
+
+	if strings.Contains(string(body), "No reported electricity outages are in our system.") {
+		return stats, fmt.Errorf("no reported electricity outages")
+	}
 
 	match := regTotals.FindStringSubmatch(string(body))
 	stats.Total = match[1]
