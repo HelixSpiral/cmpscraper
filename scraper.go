@@ -36,7 +36,9 @@ func GetStats(httpClient *http.Client) (CMP, error) {
 	defer resp.Body.Close()
 
 	if strings.Contains(string(body), "No reported electricity outages are in our system.") {
-		return stats, fmt.Errorf("no reported electricity outages")
+		stats.NoOutages = true
+
+		return stats, nil
 	}
 
 	match := regTotals.FindStringSubmatch(string(body))

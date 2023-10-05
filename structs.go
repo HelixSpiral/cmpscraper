@@ -7,6 +7,7 @@ type CMP struct {
 	Total        string
 	WithoutPower string
 	Counties     map[string]Outage
+	NoOutages    bool
 }
 
 type Outage struct {
