@@ -24,7 +24,18 @@ func GetStats(httpClient *http.Client) (CMP, error) {
 	counties := regexp.MustCompile(`([a-zA-Z]+\.html)'>([a-zA-Z]+)</a>.+?([0-9,]+)</t.+?([0-9,]+)</t`)
 	updatedAt := regexp.MustCompile("Update: ([^<]+)")
 
-	resp, err := httpClient.Get(URL)
+	req, err := http.NewRequest("GET", URL, nil)
+	if err != nil {
+		return stats, fmt.Errorf("erorr creating request: %w", err)
+	}
+
+	// Hard code some headers to get around some blocking
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.9999.99 Safari/537.36")
+	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	req.Header.Set("Connection", "keep-alive")
+
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return stats, fmt.Errorf("error in http GET: %w", err)
 	}
