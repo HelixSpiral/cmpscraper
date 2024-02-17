@@ -1,7 +1,7 @@
 CMP Scraper
 ---
 
-This is a simple package used to scrape the Central Maine Power website for outage information.
+This is a simple package used to query the Central Maine Power website for information.
 
 Usage
 ---
