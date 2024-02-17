@@ -27,6 +27,20 @@ func main() {
 	httpClient := &http.Client{
 		Transport: httpTransport,
 	}
-	stats, _ := cmpscraper.GetStats(httpClient)
+
+	cmp, err := cmpscraper.New(&cmpscraper.CMP{
+		Client: httpClient,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	load, err := cmp.GetCurrentLoad()
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(load)
+
+	stats, _ := cmp.GetOutageStats()
 	log.Printf("%+v", stats)
 }

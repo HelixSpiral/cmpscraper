@@ -9,10 +9,42 @@ import (
 	"time"
 )
 
-const URL = "https://ecmp.cmpco.com/OutageReports/CMP.html"
+func (cmp *CMP) rawReq(url string) ([]byte, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return []byte{}, fmt.Errorf("erorr creating request: %w", err)
+	}
 
-func GetStats(httpClient *http.Client) (CMP, error) {
-	var stats CMP
+	// Set any headers provided
+	for k, v := range cmp.ReqHeaders {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := cmp.Client.Do(req)
+	if err != nil {
+		return []byte{}, fmt.Errorf("error in http GET: %w", err)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, fmt.Errorf("error reading http response body: %w", err)
+	}
+	defer resp.Body.Close()
+
+	return body, nil
+}
+
+func (cmp *CMP) GetCurrentLoad() (string, error) {
+	body, err := cmp.rawReq(cmp.MWStatsUrl)
+	if err != nil {
+		return "", err
+	}
+
+	return string(body), nil
+}
+
+func (cmp *CMP) GetOutageStats() (CMPPowerStats, error) {
+	var stats CMPPowerStats
 	stats.Counties = make(map[string]Outage)
 
 	loc, err := time.LoadLocation("EST")
@@ -24,27 +56,10 @@ func GetStats(httpClient *http.Client) (CMP, error) {
 	counties := regexp.MustCompile(`([a-zA-Z]+\.html)'>([a-zA-Z]+)</a>.+?([0-9,]+)</t.+?([0-9,]+)</t`)
 	updatedAt := regexp.MustCompile("Update: ([^<]+)")
 
-	req, err := http.NewRequest("GET", URL, nil)
+	body, err := cmp.rawReq(cmp.PowerStatsUrl)
 	if err != nil {
-		return stats, fmt.Errorf("erorr creating request: %w", err)
+		return stats, err
 	}
-
-	// Hard code some headers to get around some blocking
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.9999.99 Safari/537.36")
-	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
-	req.Header.Set("Connection", "keep-alive")
-
-	resp, err := httpClient.Do(req)
-	if err != nil {
-		return stats, fmt.Errorf("error in http GET: %w", err)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return stats, fmt.Errorf("error reading http response body: %w", err)
-	}
-	defer resp.Body.Close()
 
 	if strings.Contains(string(body), "No reported electricity outages are in our system.") {
 		stats.NoOutages = true
