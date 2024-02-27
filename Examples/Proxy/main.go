@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/HelixSpiral/cmpscraper"
+	"github.com/HelixSpiral/cmpscraper/v2"
 	"golang.org/x/net/proxy"
 )
 

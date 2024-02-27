@@ -1,4 +1,4 @@
-module github.com/HelixSpiral/cmpscraper
+module github.com/HelixSpiral/cmpscraper/v2
 
 go 1.19
 

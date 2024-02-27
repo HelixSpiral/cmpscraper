@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/HelixSpiral/cmpscraper"
+	"github.com/HelixSpiral/cmpscraper/v2"
 )
 
 func main() {
